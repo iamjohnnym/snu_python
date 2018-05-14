@@ -2,7 +2,7 @@
 
 #
 # Cookbook:: snu_python
-# Recipe:: default
+# Library:: resource/snu_python_package
 #
 # Copyright:: 2018, Socrata, Inc.
 #
@@ -18,8 +18,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-snu_python 'default'
+require 'chef/resource'
 
-snu_python_package %w[awscli requests] do
-  action :upgrade
+class Chef
+  class Resource
+    # A Chef resource wrapper around python_package. The only difference
+    # between this resource and poise-python's python_package is that we
+    # explicitly default to installing in Python 2.
+    #
+    # @author Jonathan Hartman <jonathan.hartman@socrata.com>
+    class SnuPythonPackage < PoisePython::Resources::PythonPackage::Resource
+      provides :snu_python_package
+
+      attribute :python, kind_of: String, default: 'python2'
+    end
+  end
 end

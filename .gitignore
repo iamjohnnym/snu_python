@@ -16,6 +16,9 @@ gems.locked
 bin/*
 .bundle/*
 
+# RuboCop
+.rubocop-http*
+
 # ChefSpec
 coverage/
 

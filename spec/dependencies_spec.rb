@@ -4,7 +4,7 @@ require 'berkshelf'
 require_relative 'spec_helper'
 
 describe Berkshelf::Berksfile.from_options(
-  berksfile: File.expand_path('../../Berksfile', __FILE__)
+  berksfile: File.expand_path('../Berksfile', __dir__)
 ) do
   it 'indicates all our dependencies are up to date' do
     subject.install
