@@ -3,29 +3,15 @@
 require_relative '../../spec_helper'
 
 describe 'snu_python::default' do
-  context 'When all attributes are default, on Ubuntu 16.04' do
-    let(:chef_run) do
-      # for a complete list of available platforms and versions see:
-      # https://github.com/customink/fauxhai/blob/master/PLATFORMS.md
-      runner = ChefSpec::ServerRunner.new(platform: 'ubuntu', version: '16.04')
-      runner.converge(described_recipe)
-    end
+  let(:platform) { { platform: 'ubuntu', version: '16.04' } }
+  let(:runner) { ChefSpec::SoloRunner.new(platform) }
+  cached(:chef_run) { runner.converge(described_recipe) }
 
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+  it 'installs snu_python' do
+    expect(chef_run).to install_snu_python('default')
   end
 
-  context 'When all attributes are default, on CentOS 7.4.1708' do
-    let(:chef_run) do
-      # for a complete list of available platforms and versions see:
-      # https://github.com/customink/fauxhai/blob/master/PLATFORMS.md
-      runner = ChefSpec::ServerRunner.new(platform: 'centos', version: '7.4.1708')
-      runner.converge(described_recipe)
-    end
-
-    it 'converges successfully' do
-      expect { chef_run }.to_not raise_error
-    end
+  it 'upgrades the awscli and requests packages' do
+    expect(chef_run).to upgrade_snu_python_package(%w[awscli requests])
   end
 end

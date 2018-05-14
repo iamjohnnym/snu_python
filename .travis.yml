@@ -1,4 +1,5 @@
 language: ruby
+rvm: system
 
 branches:
   only:
@@ -17,51 +18,44 @@ services:
   - docker
 
 install:
-  - chef exec bundle install --without=development
+  - chef exec bundle install
 
 env:
+  - SUITE=unit
   - SUITE=default PLATFORM=ubuntu
   - SUITE=default PLATFORM=debian
-  - SUITE=default PLATFORM=centos
-  - SUITE=default PLATFORM=fedora
-  - SUITE=default PLATFORM=amazon
   - SUITE=remove PLATFORM=ubuntu
   - SUITE=remove PLATFORM=debian
-  - SUITE=remove PLATFORM=centos
-  - SUITE=remove PLATFORM=fedora
-  - SUITE=remove PLATFORM=amazon
 
 script:
-  - chef exec kitchen test $SUITE-$PLATFORM
+  - if test "$SUITE" = "unit"; then chef exec delivery local all; fi
+  - if test "$SUITE" != "unit"; then chef exec microwave test $SUITE-$PLATFORM; fi
 
 stages:
-  - name: unit
   - name: test
   - name: deploy
     if: NOT type = cron AND branch = master
 
 jobs:
   include:
-    - stage: unit
-      env:
-      script: chef exec rake
     - stage: deploy
       env:
       script: skip
       before_deploy:
-        # - TODO: decrypt .travis/configs.tar.gz
+        - openssl aes-256-cbc -K $encrypted_9390e57ae1b6_key -iv $encrypted_9390e57ae1b6_iv -in .travis/configs.tar.gz.enc -out .travis/configs.tar.gz -d
         - tar xzf .travis/configs.tar.gz
         - cp .travis/id_rsa ~/.ssh/
         - chmod 0600 ~/.ssh/id_rsa
         - git remote set-url origin git@github.com:socrata-cookbooks/snu_python
       deploy:
         provider: script
-        script: chef exec stove --username socrata --key .travis/client.pem
+        script: rvm use system do chef exec stove --username socrata --key .travis/client.pem
         skip_cleanup: true
 
 notifications:
   slack:
     on_failure: change
     on_success: never
+    on_pull_requests: false
     rooms:
-      # TODO: - secure: Connect to Socrata slack
+      - secure: ggkC+Qcyio/wPb4iHHvRYzjQzbh0cyDjf1MtBg7w5A2QG5TVhbmTUiAkFgsm+o85Hdpyd9ZXfZu39Cp34ZOfGLCuI3FGnEY4/EhprieJrNcwlYdpNpWEJd2NjaKaJZfS0e5Ar+fdWVWK9cyIQNEHNtiO9SRmyyFqznuU7Zf0vNQFdAkBz+Zich7xy2lyViKOhTPk/EdHxqQys8jXfjUBstOeipWZisnKV9pQsa2QVtwrg+67uMNBBV5lUQgRcNmmVpSlrbQlmKy5+LYGx5NGHGSeUcj6DQNkA+/ocH7nN74ddwehOHD1lJ2L7JtNWeA8HOtBpmlIeELzTGhXc09kfyMJCD89OWFNkY531fYHWdE5Urp4+ISnxxn9uPZ+PQCsH6ufT7jAgPu0ZeooKW1L0XA+pxnz56dEMH12pgkaR/T6RzAmi5FdvNIqQgKQuGVizagw6f7t68R+FTG/JF4JNMKFkZrMjYGFSgKU/DmfuWYeEqohulFyMOWOzmi0iz//iUXTEap8VDEAXYvaTgxGp/e+0JFVbPx76z7mK8YfemXERidev7/ly+xZUI0+KGSLTllzFZeLM6q/Xylk54+P9L5s/OanKJyGE8DAaHsiEDgjIukg1FVPIFJW+/HD4r3UKUk5lE7yqdgSGGMjt3ZB1jiAP3ToqKeNqDwMhyD63Mk=
