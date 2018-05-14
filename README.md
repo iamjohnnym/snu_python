@@ -18,9 +18,10 @@ This cookbook is continously tested against a matrix of Chef versions and platfo
 
 X
 
-- Ubuntu 18.04
 - Ubuntu 16.04
 - Ubuntu 14.04
+- Debian 9
+- Debian 8
 
 ## Usage
 
