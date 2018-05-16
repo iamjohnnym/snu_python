@@ -17,25 +17,23 @@ describe 'resources::snu_python::debian' do
   shared_examples_for 'any Debian platform' do
     it_behaves_like 'any platform'
 
-    context 'the :install action' do
-      include_context description
+    %w[install upgrade].each do |act|
+      context "the :#{act} action" do
+        include_context description
 
-      it 'ensures the APT cache is fresh' do
-        expect(chef_run).to periodic_apt_update('default')
-      end
+        it 'ensures the APT cache is fresh' do
+          expect(chef_run).to periodic_apt_update('default')
+        end
 
-      it 'installs the supplemental major python packages' do
-        p = %w[python3 python3-dev python python-dev]
-        expect(chef_run).to install_package(p)
+        it "#{act}s the supplemental major python packages" do
+          p = %w[python3 python3-dev python python-dev]
+          expect(chef_run).to send("#{act}_package", p)
+        end
       end
     end
 
     context 'the :remove action' do
       include_context description
-
-      it 'ensures the APT cache is fresh' do
-        expect(chef_run).to periodic_apt_update('default')
-      end
 
       it 'purges are the other python packages' do
         pkgs = %w[
@@ -57,19 +55,6 @@ describe 'resources::snu_python::debian' do
           libpython2.7-dev
         ]
         expect(chef_run).to purge_package(pkgs)
-      end
-
-      %w[pip pip3 pip3.5 pip2 pip2.7].each do |f|
-        it "deletes the #{f} pip executable" do
-          expect(chef_run).to delete_file("/usr/local/bin/#{f}")
-        end
-      end
-
-      %w[python3.5 python2.7].each do |d|
-        it "deletes the #{d} lib directory" do
-          expect(chef_run).to delete_directory("/usr/local/lib/#{d}")
-            .with(recursive: true)
-        end
       end
     end
   end

@@ -29,16 +29,34 @@ class Chef
       provides :snu_python, platform_family: 'debian'
 
       #
-      # Ensure the APT cache is fresh before trying to install Python.
-      # Install the additional packages that manage `/usr/local/bin/python2`
-      # etc.
+      # Ensure the APT cache is fresh before trying to do anything with a
+      # python_runtime resource.
       #
-      action :install do
-        apt_update 'default'
+      # (see Chef::Resource::SnuPython#after_created)
+      #
+      def after_created
+        unless (%i[install upgrade] && action).empty?
+          begin
+            run_context.resource_collection.find('apt_update[default]')
+          rescue Chef::Exceptions::ResourceNotFound
+            apt = Chef::Resource::AptUpdate.new('default', run_context)
+            apt.declared_type = :apt_update
+            run_context.resource_collection.insert(apt)
+          end
+        end
 
-        super()
+        super
+      end
 
-        package %w[python3 python3-dev python python-dev]
+      # Installupgrade the additional packages that manage
+      # `/usr/local/bin/python2` etc.
+      #
+      %i[install upgrade].each do |act|
+        action act do
+          super()
+
+          package(%w[python3 python3-dev python python-dev]) { action act }
+        end
       end
 
       #
@@ -46,24 +64,9 @@ class Chef
       # that its `:uninstall` action won't take back out.
       #
       action :remove do
-        apt_update 'default'
-
         super()
 
         package(python3_packages + python2_packages) { action :purge }
-
-        %W[
-          pip pip3 pip#{python3_version} pip2 pip#{python2_version}
-        ].each do |f|
-          file(::File.join('/usr/local/bin', f)) { action :delete }
-        end
-
-        %W[python#{python3_version} python#{python2_version}].each do |d|
-          directory ::File.join('/usr/local/lib', d) do
-            recursive true
-            action :delete
-          end
-        end
       end
 
       action_class do

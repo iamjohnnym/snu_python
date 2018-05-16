@@ -19,7 +19,3 @@
 # limitations under the License.
 
 snu_python 'default'
-
-snu_python_package %w[awscli requests] do
-  action :upgrade
-end
