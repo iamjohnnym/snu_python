@@ -69,6 +69,38 @@ Properties:
 |----------|------------|-----------------------|
 | action   | `:install` | The action to perform |
 
+***snu_python_package***
+
+A very light wrapper around the `python_package` resource that explicitly installs under Python 2 as a default behavior instead of relying on the order the `python_runtime` resources were declared in.
+
+Syntax:
+
+```ruby
+snu_python_package 'pygithub' do
+  package_name 'pygithub'
+  python '2'
+  version '1.2.3'
+  action :install
+end
+```
+
+Actions:
+
+| Action     | Description           |
+|------------|-----------------------|
+| `:install` | Install the package   |
+| `:upgrade` | Upgrade the package   |
+| `:remove`  | Uninstall the package |
+
+Properties:
+
+| Property     | Default       | Description                      |
+|--------------|---------------|----------------------------------|
+| package_name | Resource name | The name(s) of the package(s)    |
+| python       | `'2'`         | The Python runtime to install in |
+| version      | `nil`         | The version to install           |
+| action       | `:install`    | The action to perform            |
+
 ## Maintainers
 
 - Jonathan Hartman <jonathan.hartman@socrata.com>

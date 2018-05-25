@@ -20,6 +20,7 @@
 
 require 'chef/resource'
 require 'json'
+require_relative 'snu_python_package'
 
 class Chef
   class Resource
@@ -33,16 +34,10 @@ class Chef
       default_action :install
 
       #
-      # If we're doing an :install or :upgrade, the python_runtime resources
-      # need to exist in the resource collection at compile time. Otherwise,
-      # the validation in any further python_package resources fails.
-      #
-      # The python_runtime resource doesn't have an :upgrade action, so we'll
-      # handle upgrades using package resources in the :upgrade action.
+      # A python_runtime resource needs to exist at compile time so package
+      # resources can find it when they're compiled.
       #
       def after_created
-        return if (%i[install upgrade] && action).empty?
-
         %w[3 2].each do |p|
           begin
             run_context.resource_collection.find("python_runtime[#{p}]")
@@ -56,28 +51,35 @@ class Chef
       #
       # Instantiate and return a new python_runtime resource.
       #
-      # @param [String] ver the resource name/version
+      # @param [String] python the resource name/version
       #
       # @return [PoisePython::Resources::PythonRuntime::Resource] a resource
       #
-      def new_python_runtime_resource(ver)
+      def new_python_runtime_resource(python)
         py = PoisePython::Resources::PythonRuntime::Resource
-             .new(ver, run_context)
+             .new(python, run_context)
         py.declared_type = :python_runtime
+        py.action(:nothing)
         py
       end
 
       #
       # The :install and :upgrade actions should pass themselves on to the
-      # python_package resources for the base package sets.
+      # python_package resources for the base package sets. The action on the
+      # runtime happens above in after_created.
       #
       %i[install upgrade].each do |act|
         action act do
-          %w[3 2].each do |p|
-            next if new_resource.send("python#{p}_packages").empty?
+          %w[3 2].each do |py|
+            python_runtime py do
+              options package_upgrade: true if act == :upgrade
+              action :install
+            end
 
-            python_package new_resource.send("python#{p}_packages") do
-              python p
+            next if new_resource.send("python#{py}_packages").empty?
+
+            snu_python_package new_resource.send("python#{py}_packages") do
+              python py
               action act
             end
           end
@@ -89,12 +91,12 @@ class Chef
       # Python runtimes.
       #
       action :remove do
-        %w[3 2].each do |p|
-          python_package "Remove all Python #{p} packages" do
+        %w[3 2].each do |py|
+          snu_python_package "Remove all Python #{py} packages" do
             package_name(
               lazy do
                 stdout = shell_out!(
-                  "python#{p} -m pip.__main__ list --format=json"
+                  "python#{py} -m pip.__main__ list --format=json"
                 ).stdout
                 JSON.parse(stdout).map { |pkg| pkg['name'] }
               end
@@ -103,10 +105,10 @@ class Chef
             action :nothing
           end
 
-          python_runtime p do
+          python_runtime py do
             action :uninstall
             notifies :remove,
-                     "python_package[Remove all Python #{p} packages]",
+                     "snu_python_package[Remove all Python #{py} packages]",
                      :before
           end
         end

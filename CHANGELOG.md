@@ -3,7 +3,7 @@
 This file is used to list changes made in each version of the snu_python
 cookbook.
 
-## 0.1.0 (2018-05-14)
+## 0.1.0 (2018-05-25)
 
 - Initial release!
 

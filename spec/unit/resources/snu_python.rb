@@ -41,19 +41,20 @@ shared_context 'resources::snu_python' do
         shared_context 'any property set' do
           %w[3 2].each do |p|
             it "installs Python #{p}" do
-              expect(chef_run).to install_python_runtime(p)
+              opts = act == 'upgrade' ? { package_upgrade: true } : nil
+              expect(chef_run).to install_python_runtime(p).with(options: opts)
             end
 
             it "#{act}s the requested Python 3 packages" do
               pkgs = python3_packages || %w[requests]
-              expect(chef_run).to send("#{act}_python_package", pkgs)
-              #  .with(python: '3')
+              expect(chef_run).to send("#{act}_snu_python_package", pkgs)
+                .with(python: '3')
             end
 
             it "#{act}s the requested Python 2 packages" do
               pkgs = python2_packages || %w[requests awscli]
-              expect(chef_run).to send("#{act}_python_package", pkgs)
-              #  .with(python: '2')
+              expect(chef_run).to send("#{act}_snu_python_package", pkgs)
+                .with(python: '2')
             end
           end
         end
@@ -93,7 +94,7 @@ shared_context 'resources::snu_python' do
 
       %w[3 2].each do |p|
         it "removes all Python #{p} packages" do
-          pp = chef_run.python_package("Remove all Python #{p} packages")
+          pp = chef_run.snu_python_package("Remove all Python #{p} packages")
           expect(pp).to do_nothing
           expect(pp.package_name).to eq(%W[certifi chardet #{p}wiggles])
         end
@@ -101,7 +102,7 @@ shared_context 'resources::snu_python' do
         it "uninstalls Python #{p}" do
           expect(chef_run).to uninstall_python_runtime(p)
           expect(chef_run.python_runtime(p))
-            .to notify("python_package[Remove all Python #{p} packages]")
+            .to notify("snu_python_package[Remove all Python #{p} packages]")
             .to(:remove).before
         end
       end

@@ -17,7 +17,7 @@ describe 'resources::snu_python::debian' do
   shared_examples_for 'any Debian platform' do
     it_behaves_like 'any platform'
 
-    %w[install upgrade].each do |act|
+    %w[install upgrade remove].each do |act|
       context "the :#{act} action" do
         include_context description
 
@@ -25,36 +25,42 @@ describe 'resources::snu_python::debian' do
           expect(chef_run).to periodic_apt_update('default')
         end
 
-        it "#{act}s the supplemental major python packages" do
-          p = %w[python3 python3-dev python python-dev]
-          expect(chef_run).to send("#{act}_package", p)
+        pkg_act = act == 'remove' ? 'purge' : act
+        it "#{pkg_act}s the supplemental python 3 packages" do
+          p = %w[
+            python3
+            python3-dev
+            python3-minimal
+            libpython3-stdlib
+            libpython3-dev
+            python3.5-minimal
+            libpython3.5
+            libpython3.5-stdlib
+            libpython3.5-minimal
+            libpython3.5-dev
+          ]
+          if platform == 'ubuntu' && platform_version == '18.04'
+            p += %w[python3-distutils python3.5-distutils]
+          end
+          expect(chef_run).to send("#{pkg_act}_package", p)
         end
-      end
-    end
 
-    context 'the :remove action' do
-      include_context description
+        it "#{pkg_act}s the supplemental python 2 packages" do
+          p = %w[
+            python
+            python-dev
+            python-minimal
+            libpython-stdlib
+            libpython-dev
+            python2.7-minimal
+            libpython2.7
+            libpython2.7-stdlib
+            libpython2.7-minimal
+            libpython2.7-dev
+          ]
 
-      it 'purges are the other python packages' do
-        pkgs = %w[
-          python3-minimal
-          python3.5-minimal
-          libpython3.5
-          libpython3-stdlib
-          libpython3.5-stdlib
-          libpython3.5-minimal
-          libpython3-dev
-          libpython3.5-dev
-          python-minimal
-          python2.7-minimal
-          libpython2.7
-          libpython-stdlib
-          libpython2.7-stdlib
-          libpython2.7-minimal
-          libpython-dev
-          libpython2.7-dev
-        ]
-        expect(chef_run).to purge_package(pkgs)
+          expect(chef_run).to send("#{pkg_act}_package", p)
+        end
       end
     end
   end

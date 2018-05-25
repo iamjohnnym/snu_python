@@ -17,8 +17,3 @@ depends 'poise-python'
 # TODO: 18.04 support should be in the next poise-python after 1.7.0.
 supports 'ubuntu', '< 18.04'
 supports 'debian'
-# supports 'redhat'
-# supports 'centos'
-# supports 'scientific'
-# supports 'fedora'
-# supports 'amazon'

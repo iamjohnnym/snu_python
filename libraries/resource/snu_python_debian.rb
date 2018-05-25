@@ -19,6 +19,7 @@
 # limitations under the License.
 
 require_relative 'snu_python'
+require_relative '../helpers/snu_python_debian'
 
 class Chef
   class Resource
@@ -35,38 +36,29 @@ class Chef
       # (see Chef::Resource::SnuPython#after_created)
       #
       def after_created
-        unless (%i[install upgrade] && action).empty?
-          begin
-            run_context.resource_collection.find('apt_update[default]')
-          rescue Chef::Exceptions::ResourceNotFound
-            apt = Chef::Resource::AptUpdate.new('default', run_context)
-            apt.declared_type = :apt_update
-            run_context.resource_collection.insert(apt)
-          end
+        begin
+          run_context.resource_collection.find('apt_update[default]')
+        rescue Chef::Exceptions::ResourceNotFound
+          apt = Chef::Resource::AptUpdate.new('default', run_context)
+          apt.declared_type = :apt_update
+          run_context.resource_collection.insert(apt)
         end
 
         super
       end
 
-      # Installupgrade the additional packages that manage
-      # `/usr/local/bin/python2` etc.
       #
-      %i[install upgrade].each do |act|
+      # Install/upgrade/remove any additional packages after the python_runtime
+      # resource has had its chance to do so.
+      #
+      %i[install upgrade remove].each do |act|
         action act do
           super()
 
-          package(%w[python3 python3-dev python python-dev]) { action act }
+          %w[3 2].each do |py|
+            package(packages_for(py)) { action({ remove: :purge }[act] || act) }
+          end
         end
-      end
-
-      #
-      # Remove the packages that were brought in as deps by `python_runtime` but
-      # that its `:uninstall` action won't take back out.
-      #
-      action :remove do
-        super()
-
-        package(python3_packages + python2_packages) { action :purge }
       end
 
       action_class do

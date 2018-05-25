@@ -26,7 +26,7 @@ end
   end
 end
 
-%w[awscli 1and1].each do |p|
+%w[awscli 1and1 botocore].each do |p|
   describe pip(p) do
     it { should be_installed }
   end
@@ -42,23 +42,9 @@ end
       it { should_not be_installed }
     end
   end
-
-  # Ensure the Python packages got installed in the right Python.
-  dist_dir2 = File.join("/usr/local/lib/python#{major_minor2}/dist-packages", p)
-  describe directory(dist_dir2) do
-    it { should exist }
-    its(:owner) { should eq('root') }
-    its(:group) { should eq('staff') }
-    its(:mode) { should cmp('02755') }
-  end
-
-  dist_dir3 = File.join("/usr/local/lib/python#{major_minor3}/dist-packages", p)
-  describe directory(dist_dir3) do
-    it { should_not exist }
-  end
 end
 
-%w[requests pygithub].each do |p|
+%w[requests pygithub python_http_client].each do |p|
   describe pip(p) do
     it { should be_installed }
   end
@@ -67,22 +53,5 @@ end
     describe pip(p, "/usr/local/bin/#{pp}") do
       it { should be_installed }
     end
-  end
-
-  # Ensure the Python packages got installed in the right Python.
-  dist_dir2 = File.join("/usr/local/lib/python#{major_minor2}/dist-packages", p)
-  describe directory(dist_dir2) do
-    it { should exist }
-    its(:owner) { should eq('root') }
-    its(:group) { should eq('staff') }
-    its(:mode) { should cmp('02755') }
-  end
-
-  dist_dir3 = File.join("/usr/local/lib/python#{major_minor3}/dist-packages", p)
-  describe directory(dist_dir3) do
-    it { should exist }
-    its(:owner) { should eq('root') }
-    its(:group) { should eq('staff') }
-    its(:mode) { should cmp('02755') }
   end
 end
