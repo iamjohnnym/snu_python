@@ -83,6 +83,15 @@ class Chef
               action act
             end
           end
+
+          file '/usr/local/bin/pip' do
+            src = '/usr/local/bin/pip2'
+
+            owner(lazy { ::File.stat(src).uid })
+            group(lazy { ::File.stat(src).gid })
+            mode(lazy { ::File.stat(src).mode.to_s(8)[1..-1] })
+            content(lazy { ::File.read(src) })
+          end
         end
       end
 
@@ -101,7 +110,7 @@ class Chef
                 JSON.parse(stdout).map { |pkg| pkg['name'] }
               end
             )
-            python p
+            python py
             action :nothing
           end
 

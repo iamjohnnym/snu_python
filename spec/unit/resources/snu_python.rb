@@ -13,12 +13,33 @@ shared_context 'resources::snu_python' do
   let(:name) { 'default' }
 
   shared_context 'the :install action' do
+    before do
+      allow(File).to receive(:stat).and_call_original
+      allow(File).to receive(:stat)
+        .with('/usr/local/bin/pip2')
+        .and_return(double(uid: 123, gid: 456, mode: 33_261))
+      allow(File).to receive(:read).and_call_original
+      allow(File).to receive(:read)
+        .with('/usr/local/bin/pip2').and_return('pip2')
+    end
   end
 
-  %i[upgrade remove].each do |a|
-    shared_context "the :#{a} action" do
-      let(:action) { a }
+  shared_context 'the :upgrade action' do
+    let(:action) { :upgrade }
+
+    before do
+      allow(File).to receive(:stat).and_call_original
+      allow(File).to receive(:stat)
+        .with('/usr/local/bin/pip2')
+        .and_return(double(uid: 123, gid: 456, mode: 33_261))
+      allow(File).to receive(:read).and_call_original
+      allow(File).to receive(:read)
+        .with('/usr/local/bin/pip2').and_return('pip2')
     end
+  end
+
+  shared_context 'the :remove action' do
+    let(:action) { :remove }
   end
 
   shared_context 'all default properties' do
@@ -55,6 +76,14 @@ shared_context 'resources::snu_python' do
               pkgs = python2_packages || %w[requests awscli]
               expect(chef_run).to send("#{act}_snu_python_package", pkgs)
                 .with(python: '2')
+            end
+
+            it 'ensures /usr/local/bin/pip points at Python 2' do
+              expect(chef_run).to create_file('/usr/local/bin/pip')
+                .with(owner: 123,
+                      group: 456,
+                      mode: '00755',
+                      content: 'pip2')
             end
           end
         end
