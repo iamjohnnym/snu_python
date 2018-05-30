@@ -19,6 +19,7 @@
 # limitations under the License.
 
 require_relative 'snu_python'
+require_relative '../helpers/snu_python_debian'
 
 class Chef
   class Resource
@@ -29,39 +30,33 @@ class Chef
       provides :snu_python, platform_family: 'debian'
 
       #
-      # Ensure the APT cache is fresh before trying to install Python.
-      # Install the additional packages that manage `/usr/local/bin/python2`
-      # etc.
+      # Ensure the APT cache is fresh before trying to do anything with a
+      # python_runtime resource.
       #
-      action :install do
-        apt_update 'default'
+      # (see Chef::Resource::SnuPython#after_created)
+      #
+      def after_created
+        begin
+          run_context.resource_collection.find('apt_update[default]')
+        rescue Chef::Exceptions::ResourceNotFound
+          apt = Chef::Resource::AptUpdate.new('default', run_context)
+          apt.declared_type = :apt_update
+          run_context.resource_collection.insert(apt)
+        end
 
-        super()
-
-        package %w[python3 python3-dev python python-dev]
+        super
       end
 
       #
-      # Remove the packages that were brought in as deps by `python_runtime` but
-      # that its `:uninstall` action won't take back out.
+      # Install/upgrade/remove any additional packages after the python_runtime
+      # resource has had its chance to do so.
       #
-      action :remove do
-        apt_update 'default'
+      %i[install upgrade remove].each do |act|
+        action act do
+          super()
 
-        super()
-
-        package(python3_packages + python2_packages) { action :purge }
-
-        %W[
-          pip pip3 pip#{python3_version} pip2 pip#{python2_version}
-        ].each do |f|
-          file(::File.join('/usr/local/bin', f)) { action :delete }
-        end
-
-        %W[python#{python3_version} python#{python2_version}].each do |d|
-          directory ::File.join('/usr/local/lib', d) do
-            recursive true
-            action :delete
+          %w[3 2].each do |py|
+            package(packages_for(py)) { action({ remove: :purge }[act] || act) }
           end
         end
       end

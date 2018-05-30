@@ -23,6 +23,8 @@ X
 - Debian 9
 - Debian 8
 
+Additional platform support may be added in the future, but Python in RHEL-land seems to get real scary real fast.
+
 ## Usage
 
 Add the default recipe to your node's run list and/or declare instances of the included resources in a recipe of your own.
@@ -31,8 +33,7 @@ Add the default recipe to your node's run list and/or declare instances of the i
 
 ***default***
 
-- Installs Python 2 and 3 using the `snu_python` resource
-- Installs/upgrades the awscli and requests in Python 2 using `snu_python_package`
+Installs Python 2 and 3 and some default packages using the `snu_python` resource
 
 ## Attributes
 
@@ -42,22 +43,25 @@ N/A
 
 ***snu_python***
 
-A wrapper around the `python_runtime` resource to install both Python 2 and 3 as well as any supporting packages (e.g. the python3 package that manages `/usr/local/bin/python3` on Debian platforms).
+A wrapper around the `python_runtime` resource to install both Python 2 and 3 as well as any supporting packages (e.g. the python3 package that manages `/usr/local/bin/python3` on Debian platforms) and some default packages from PIP.
 
 Syntax:
 
 ```ruby
 snu_python 'default' do
+  python3_packages %w[requests]
+  python2_packages %w[requests awscli]
   action :install
 end
 ```
 
 Actions:
 
-| Action     | Description              |
-|------------|--------------------------|
-| `:install` | Install Python 2 and 3   |
-| `:remove`  | Uninstall Python 2 and 3 |
+| Action     | Description                                         |
+|------------|-----------------------------------------------------|
+| `:install` | Install Python 2 and 3 and friends                  |
+| `:upgrade` | Upgrade Python 2 and 3 and friends                  |
+| `:remove`  | Uninstall Python 2 and 3 and all installed packages |
 
 Properties:
 
@@ -67,29 +71,35 @@ Properties:
 
 ***snu_python_package***
 
-A wrapper around the `python_package` resource to explicitly default to installing packages in Python 2 rather than relying on the order the `python_runtime` resources were declared in.
+A very light wrapper around the `python_package` resource that explicitly installs under Python 2 as a default behavior instead of relying on the order the `python_runtime` resources were declared in.
 
 Syntax:
 
 ```ruby
-snu_python_package 'awsclit' do
-  python 'python2'
+snu_python_package 'pygithub' do
+  package_name 'pygithub'
+  python '2'
+  version '1.2.3'
   action :install
 end
 ```
 
 Actions:
 
-Actions are the same as those of the [python_package](https://github.com/poise/poise-python#python_package) resource.
+| Action     | Description           |
+|------------|-----------------------|
+| `:install` | Install the package   |
+| `:upgrade` | Upgrade the package   |
+| `:remove`  | Uninstall the package |
 
 Properties:
 
-| Property | Default     | Description                          |
-|----------|-------------|--------------------------------------|
-| python   | `'python2'` | The Python to install the package in |
-| \*       |             |                                      |
-
-\* All other properties are the same as those of the [python_package](https://github.com/poise/poise-python#python_package) resource.
+| Property     | Default       | Description                      |
+|--------------|---------------|----------------------------------|
+| package_name | Resource name | The name(s) of the package(s)    |
+| python       | `'2'`         | The Python runtime to install in |
+| version      | `nil`         | The version to install           |
+| action       | `:install`    | The action to perform            |
 
 ## Maintainers
 

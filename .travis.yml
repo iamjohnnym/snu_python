@@ -22,10 +22,14 @@ install:
 
 env:
   - SUITE=unit
-  - SUITE=default PLATFORM=ubuntu
-  - SUITE=default PLATFORM=debian
-  - SUITE=remove PLATFORM=ubuntu
-  - SUITE=remove PLATFORM=debian
+  - SUITE=default PLATFORM=ubuntu-1604
+  - SUITE=default PLATFORM=ubuntu-1404
+  - SUITE=default PLATFORM=debian-9
+  - SUITE=default PLATFORM=debian-8
+  - SUITE=remove PLATFORM=ubuntu-1604
+  - SUITE=remove PLATFORM=ubuntu-1404
+  - SUITE=remove PLATFORM=debian-9
+  - SUITE=remove PLATFORM=debian-8
 
 script:
   - if test "$SUITE" = "unit"; then chef exec delivery local all; fi

@@ -10,8 +10,4 @@ describe 'snu_python::default' do
   it 'installs snu_python' do
     expect(chef_run).to install_snu_python('default')
   end
-
-  it 'upgrades the awscli and requests packages' do
-    expect(chef_run).to upgrade_snu_python_package(%w[awscli requests])
-  end
 end

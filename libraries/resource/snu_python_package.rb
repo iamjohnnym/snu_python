@@ -22,15 +22,47 @@ require 'chef/resource'
 
 class Chef
   class Resource
-    # A Chef resource wrapper around python_package. The only difference
-    # between this resource and poise-python's python_package is that we
-    # explicitly default to installing in Python 2.
+    # An extremely light wrapper around the python_package resource to
+    # explicitly set a default of installing under Python 2.
     #
     # @author Jonathan Hartman <jonathan.hartman@socrata.com>
-    class SnuPythonPackage < PoisePython::Resources::PythonPackage::Resource
+    class SnuPythonPackage < Resource
       provides :snu_python_package
 
-      attribute :python, kind_of: String, default: 'python2'
+      property :package_name, [String, Array], identity: true
+      property :python, String, default: '2'
+      property :version, String
+
+      default_action :install
+
+      #
+      # Borrow the name capture from Chef::Resource::Package.
+      #
+      # (see Chef::Resource#initialize)
+      #
+      def initialize(name, *args)
+        package_name(name)
+        super
+      end
+
+      #
+      # Every supported action should just be passed on to an underlying
+      # python_package resource.
+      #
+      %i[install upgrade remove].each do |act|
+        action act do
+          with_run_context new_resource.run_context do
+            python_package new_resource.name do
+              %i[package_name python version].each do |prop|
+                unless new_resource.send(prop).nil?
+                  send(prop, new_resource.send(prop))
+                end
+              end
+              action act
+            end
+          end
+        end
+      end
     end
   end
 end

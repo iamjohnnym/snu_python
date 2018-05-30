@@ -20,72 +20,80 @@
 
 module SnuPythonCookbook
   module Helpers
-    # Helper methods for dealing with Python packages on Debian platforms.
+    # Helpers for dealing with Python packages on Debian platforms.
     #
     # @author Jonathan Hartman <jonathan.hartman@socrata.com>
     module SnuPythonDebian
+      # Keep track of more packages than what poise-python alone covers. This
+      # enables installing the top-level python/python3 packages that manage
+      # e.g. /usr/bin/python3 and uninstalling all the dependencies they pull
+      # in without any worries about an autoremove unintentionally killing
+      # unrelated packages.
+      PACKAGES ||= %w[
+        python%<major>s
+        python%<major>s-dev
+        python%<major>s-minimal
+        libpython%<major>s-stdlib
+        libpython%<major>s-dev
+        python%<major_minor>s-minimal
+        libpython%<major_minor>s
+        libpython%<major_minor>s-stdlib
+        libpython%<major_minor>s-minimal
+        libpython%<major_minor>s-dev
+      ].freeze
+
       #
-      # Return a list of all the Python 2 packages that python_runtime's
-      # :uninstall action doesn't remove.
+      # Build the list of packages for this platform that should be managed.
+      #
+      # @param [String] python the major python version
       #
       # @return [Array<String>] an array of package names
       #
-      def python2_packages
-        %W[
-          python-minimal
-          python#{python2_version}-minimal
-          libpython#{python2_version}
-          libpython-stdlib
-          libpython#{python2_version}-stdlib
-          libpython#{python2_version}-minimal
-          libpython-dev
-          libpython#{python2_version}-dev
-        ]
-      end
-
-      #
-      # Return a list of all the Python 3 packages that python_runtime's
-      # :uninstall action doesn't remove.
-      #
-      # @return [Array<String>] an array of package names
-      #
-      def python3_packages
-        %W[
-          python3-minimal
-          python#{python3_version}-minimal
-          libpython#{python3_version}
-          libpython3-stdlib
-          libpython#{python3_version}-stdlib
-          libpython#{python3_version}-minimal
-          libpython3-dev
-          libpython#{python3_version}-dev
-        ]
-      end
-
-      #
-      # Check the APT cache to find the exact version of Python 3 on this
-      # platform.
-      #
-      # @return [String] the Python 3 major+minor version
-      #
-      def python3_version
-        @python3_version ||= begin
-          line = shell_out!('apt-cache show python3').stdout.lines.find do |l|
-            l.split(':')[0] == 'Depends'
-          end
-          line.split[1].gsub(/^python/, '').strip
+      def packages_for(python)
+        pkgs = PACKAGES.map do |p|
+          format(p,
+                 major: python == '2' ? '' : python,
+                 major_minor: major_minor_for(python))
         end
+
+        pkgs + platform_specific_packages_for(python)
       end
 
       #
-      # Check the APT cache to find the exact version of Python 2 on this
-      # platform.
+      # Return any additional, additional packages specific to this platform.
+      # Right now, that just means distutils for Python 3 on Ubuntu 18.04 and
+      # Debian 10.
       #
-      # @return [String] the Python 2 major+minor version
+      # @param [String] python the major python version
       #
-      def python2_version
-        @python2_version ||= begin
-          line = shell_out!('apt-cache show python').stdout.lines.find do |l|
+      # @return [Array<String>] an array of package names
+      #
+      def platform_specific_packages_for(python)
+        return [] unless python == '3'
+        req = Gem::Requirement.new(case node['platform']
+                                   when 'ubuntu' then '>= 18.04'
+                                   when 'debian' then '>= 10'
+                                   end)
+        return [] unless req.satisfied_by?(
+          Gem::Version.new(node['platform_version'])
+        )
+        %W[python3-distutils python#{major_minor_for(python)}-distutils]
+      end
+
+      #
+      # Check the APT cache to find the major.minor version of a major Python
+      # on this platform.
+      #
+      # @param [String] python the Python major version as a string
+      #
+      # @return [String] the Python major.minor version
+      #
+      def major_minor_for(python)
+        @major_minor_for ||= {}
+        @major_minor_for[python] ||= begin
+          pkg = { '3' => 'python3', '2' => 'python' }[python]
+
+          line = shell_out!("apt-cache show #{pkg}").stdout.lines.find do |l|
             l.split(':')[0] == 'Depends'
           end
           line.split[1].gsub(/^python/, '').strip
