@@ -101,24 +101,23 @@ class Chef
       #
       action :remove do
         %w[3 2].each do |py|
-          snu_python_package "Remove all Python #{py} packages" do
-            package_name(
-              lazy do
-                stdout = shell_out!(
-                  "python#{py} -m pip.__main__ list --format=json"
-                ).stdout
-                JSON.parse(stdout).map { |pkg| pkg['name'] }
-              end
-            )
-            python py
-            action :nothing
+          if ::File.exist?("/usr/bin/python#{py}")
+            snu_python_package "Remove all Python #{py} packages" do
+              package_name(
+                lazy do
+                  stdout = shell_out!(
+                    "/usr/bin/python#{py} -m pip.__main__ list --format=json"
+                  ).stdout
+                  JSON.parse(stdout).map { |pkg| pkg['name'] }
+                end
+              )
+              python py
+              action :remove
+            end
           end
 
           python_runtime py do
             action :uninstall
-            notifies :remove,
-                     "snu_python_package[Remove all Python #{py} packages]",
-                     :before
           end
         end
       end

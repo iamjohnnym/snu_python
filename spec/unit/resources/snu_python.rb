@@ -40,6 +40,28 @@ shared_context 'resources::snu_python' do
 
   shared_context 'the :remove action' do
     let(:action) { :remove }
+    let(:python3_installed?) { nil }
+    let(:python2_installed?) { nil }
+
+    before do
+      allow(File).to receive(:exist?).and_call_original
+      %w[3 2].each do |p|
+        allow(File).to receive(:exist?)
+          .with("/usr/bin/python#{p}")
+          .and_return(send(:"python#{p}_installed?"))
+        stdout = <<-STDOUT.gsub(/^ +/, '')
+          [
+            {"name": "certifi", "version": "2017.4.17"},
+            {"name": "chardet", "version": "3.0.3"},
+            {"name": "#{p}wiggles", "version": "0.0.1"}
+          ]
+        STDOUT
+
+        allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out!)
+          .with("/usr/bin/python#{p} -m pip.__main__ list --format=json")
+          .and_return(double(stdout: stdout))
+      end
+    end
   end
 
   shared_context 'all default properties' do
@@ -105,34 +127,49 @@ shared_context 'resources::snu_python' do
     context 'the :remove action' do
       include_context description
 
-      before do
+      shared_examples_for 'any installed state' do
         %w[3 2].each do |p|
-          stdout = <<-STDOUT.gsub(/^ +/, '')
-            [
-              {"name": "certifi", "version": "2017.4.17"},
-              {"name": "chardet", "version": "3.0.3"},
-              {"name": "#{p}wiggles", "version": "0.0.1"}
-            ]
-          STDOUT
-
-          allow_any_instance_of(Chef::Mixin::ShellOut).to receive(:shell_out!)
-            .with("python#{p} -m pip.__main__ list --format=json")
-            .and_return(double(stdout: stdout))
+          it "uninstalls Python #{p}" do
+            expect(chef_run).to uninstall_python_runtime(p)
+          end
         end
       end
 
-      %w[3 2].each do |p|
-        it "removes all Python #{p} packages" do
-          pp = chef_run.snu_python_package("Remove all Python #{p} packages")
-          expect(pp).to do_nothing
-          expect(pp.package_name).to eq(%W[certifi chardet #{p}wiggles])
-        end
+      context 'no Python runtime installed' do
+        let(:python3_installed?) { false }
+        let(:python2_installed?) { false }
 
-        it "uninstalls Python #{p}" do
-          expect(chef_run).to uninstall_python_runtime(p)
-          expect(chef_run.python_runtime(p))
-            .to notify("snu_python_package[Remove all Python #{p} packages]")
-            .to(:remove).before
+        it_behaves_like 'any installed state'
+
+        %w[3 2].each do |p|
+          it "does not remove all Python #{p} packages" do
+            pp = chef_run.snu_python_package("Remove all Python #{p} packages")
+            expect(pp).to eq(nil)
+          end
+        end
+      end
+
+      context 'Python 3 runtime installed' do
+        let(:python3_installed?) { true }
+
+        it_behaves_like 'any installed state'
+
+        it 'removes all Python 3 packages' do
+          expect(chef_run)
+            .to remove_snu_python_package('Remove all Python 3 packages')
+            .with(package_name: %w[certifi chardet 3wiggles],
+                  python: '3')
+        end
+      end
+
+      context 'Python 2 runtime installed' do
+        let(:python2_installed?) { true }
+
+        it 'removes all Python 2 packages' do
+          expect(chef_run)
+            .to remove_snu_python_package('Remove all Python 2 packages')
+            .with(package_name: %w[certifi chardet 2wiggles],
+                  python: '2')
         end
       end
     end
