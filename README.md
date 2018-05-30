@@ -65,9 +65,11 @@ Actions:
 
 Properties:
 
-| Property | Default    | Description           |
-|----------|------------|-----------------------|
-| action   | `:install` | The action to perform |
+| Property         | Default             | Description                        |
+|------------------|---------------------|------------------------------------|
+| python3_packages | %w[requests]        | Packages to install under Python 3 |
+| python2_packages | %w[requests awscli] | Packages to install under Python 2 |
+| action           | `:install`          | The action to perform              |
 
 ***snu_python_package***
 
