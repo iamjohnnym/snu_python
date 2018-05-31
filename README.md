@@ -103,6 +103,39 @@ Properties:
 | version      | `nil`         | The version to install           |
 | action       | `:install`    | The action to perform            |
 
+***snu_python_virtualenv***
+
+A very light wrapper around the `python_virtualenv` resource that explicitly installs under Python 2 as a default behavior instead of relying on the order the `python_runtime` resources were declared in.
+
+Syntax:
+
+```ruby
+snu_python_virtualenv '/opt/myapp' do
+  path '/opt/myapp'
+  python '2'
+  user 'root'
+  group 'root'
+  action :create
+end
+```
+
+Actions:
+
+| Action    | Description           |
+|-----------|-----------------------|
+| `:create` | Create the virtualenv |
+| `:delete` | Delete the virtualenv |
+
+Properties:
+
+| Property | Default       | Description                           |
+|----------|---------------|---------------------------------------|
+| path     | Resource name | The virtualenv path                   |
+| python   | `'2'`         | The Python runtime to create in       |
+| user     | `nil`         | The user to create the virtualenv as  |
+| group    | `nil`         | The group to create the virtualenv as |
+| action   | `:create`     | The action to perform                 |
+
 ## Maintainers
 
 - Jonathan Hartman <jonathan.hartman@socrata.com>

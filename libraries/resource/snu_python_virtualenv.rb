@@ -2,7 +2,7 @@
 
 #
 # Cookbook:: snu_python
-# Library:: resource/snu_python_package
+# Library:: resource/snu_python_virtualenv
 #
 # Copyright:: 2018, Socrata, Inc.
 #
@@ -22,39 +22,29 @@ require 'chef/resource'
 
 class Chef
   class Resource
-    # An extremely light wrapper around the python_package resource to
+    # An extremely light wrapper around the python_virtualenv resource to
     # explicitly set a default of installing under Python 2.
     #
     # @author Jonathan Hartman <jonathan.hartman@socrata.com>
-    class SnuPythonPackage < Resource
-      provides :snu_python_package
+    class SnuPythonVirtualenv < Resource
+      provides :snu_python_virtualenv
 
-      property :package_name, [String, Array], identity: true
+      property :path, String, name_property: true
       property :python, String, default: '2'
-      property :version, String
-      property :virtualenv, String
+      property :user, String
+      property :group, String
 
-      default_action :install
-
-      #
-      # Borrow the name capture from Chef::Resource::Package.
-      #
-      # (see Chef::Resource#initialize)
-      #
-      def initialize(name, *args)
-        package_name(name)
-        super
-      end
+      default_action :create
 
       #
       # Every supported action should just be passed on to an underlying
-      # python_package resource.
+      # python_virtualenv resource.
       #
-      %i[install upgrade remove].each do |act|
+      %i[create delete].each do |act|
         action act do
           with_run_context new_resource.run_context do
-            python_package new_resource.name do
-              %i[package_name python version virtualenv].each do |prop|
+            python_virtualenv new_resource.name do
+              %i[path python user group].each do |prop|
                 unless new_resource.send(prop).nil?
                   send(prop, new_resource.send(prop))
                 end

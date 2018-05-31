@@ -21,3 +21,9 @@ end
 snu_python_package 'python_http_client' do
   python '3'
 end
+
+snu_python_virtualenv '/opt/myapp'
+
+snu_python_package 'pygithub' do
+  virtualenv '/opt/myapp'
+end

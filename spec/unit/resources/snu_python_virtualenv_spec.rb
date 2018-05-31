@@ -2,38 +2,31 @@
 
 require_relative '../resources'
 
-describe 'resources::snu_python_package' do
+describe 'resources::snu_python_virtualenv' do
   include_context 'resources'
 
-  let(:resource) { 'snu_python_package' }
-  %i[package_name python version virtualenv].each { |p| let(p) { nil } }
+  let(:resource) { 'snu_python_virtualenv' }
+  %i[path python user group].each { |p| let(p) { nil } }
   let(:properties) do
-    {
-      package_name: package_name,
-      python: python,
-      version: version,
-      virtualenv: virtualenv
-    }
+    { path: path, python: python, user: user, group: group }
   end
-  let(:name) { 'thing' }
+  let(:name) { '/tmp/myapp' }
 
-  shared_context 'the :install action' do
+  shared_context 'the :create action' do
   end
 
-  %i[upgrade remove].each do |a|
-    shared_context "the :#{a} action" do
-      let(:action) { a }
-    end
+  shared_context 'the :delete action' do
+    let(:action) { :delete }
   end
 
   shared_context 'all default properties' do
   end
 
   {
-    package_name: %w[thing1 thing2],
+    path: '/tmp/otherapp',
     python: '3',
-    version: '1.2.3',
-    virtualenv: '/tmp/myapp'
+    user: 'py',
+    group: 'py'
   }.each do |p, v|
     shared_context "an overridden #{p} property" do
       let(p) { v }
@@ -41,21 +34,21 @@ describe 'resources::snu_python_package' do
   end
 
   shared_examples_for 'any platform' do
-    %w[install upgrade remove].each do |act|
+    %w[create delete].each do |act|
       context "the :#{act} action" do
         include_context description
 
         shared_context 'any property set' do
-          it "#{act}s the Python package" do
-            expect(chef_run).to send("#{act}_python_package", name)
-              .with(package_name: package_name || name,
+          it "#{act}s the Python virtualenv" do
+            expect(chef_run).to send("#{act}_python_virtualenv", name)
+              .with(path: path || name,
                     python: python || '2',
-                    version: version,
-                    virtualenv: virtualenv)
+                    user: user,
+                    group: group)
           end
         end
 
-        %w[package_name python version].each do |p|
+        %w[path python user group].each do |p|
           context "an overridden #{p} property" do
             include_context description
 
