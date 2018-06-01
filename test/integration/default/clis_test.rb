@@ -42,3 +42,12 @@ describe command('pip --version') do
     should match(r)
   end
 end
+
+describe file('/opt/myapp/bin/python') do
+  its(:link_path) { should eq('/opt/myapp/bin/python2.7') }
+end
+
+describe command('/opt/myapp/bin/python --version') do
+  its(:exit_status) { should eq(0) }
+  its(:stderr) { should match(/^Python 2\.7\.[0-9]+$/) }
+end

@@ -55,3 +55,7 @@ end
     end
   end
 end
+
+describe pip('pygithub', '/opt/myapp/bin/pip') do
+  it { should be_installed }
+end
