@@ -26,7 +26,7 @@ end
   end
 end
 
-%w[awscli 1and1 botocore].each do |p|
+%w[awscli 1and1].each do |p|
   describe pip(p) do
     it { should be_installed }
   end
@@ -44,7 +44,7 @@ end
   end
 end
 
-%w[requests pygithub python_http_client].each do |p|
+%w[requests pygithub].each do |p|
   describe pip(p) do
     it { should be_installed }
   end
@@ -56,6 +56,12 @@ end
   end
 end
 
-describe pip('pygithub', '/opt/myapp/bin/pip') do
+describe pip('awscli', '/opt/myapp/bin/pip') do
   it { should be_installed }
+end
+
+%w[py-dateutil docker jsonpath_rw].each do |p|
+  describe pip(p, '/usr/share/collectd/python/bin/pip') do
+    it { should be_installed }
+  end
 end

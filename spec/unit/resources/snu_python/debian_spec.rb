@@ -42,7 +42,9 @@ describe 'resources::snu_python::debian' do
           if platform == 'ubuntu' && platform_version == '18.04'
             p += %w[python3-distutils python3.5-distutils]
           end
-          expect(chef_run).to send("#{pkg_act}_package", p)
+          expect(chef_run).to send(
+            "#{pkg_act}_package", 'All Python 3 system packages'
+          ).with(package_name: p)
         end
 
         it "#{pkg_act}s the supplemental python 2 packages" do
@@ -59,7 +61,9 @@ describe 'resources::snu_python::debian' do
             libpython2.7-dev
           ]
 
-          expect(chef_run).to send("#{pkg_act}_package", p)
+          expect(chef_run).to send(
+            "#{pkg_act}_package", 'All Python 2 system packages'
+          ).with(package_name: p)
         end
       end
     end

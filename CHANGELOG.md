@@ -1,7 +1,10 @@
 # Snu Python Cookbook CHANGELOG
 
-This file is used to list changes made in each version of the snu_python
-cookbook.
+This file is used to list changes made in each version of the snu_python cookbook.
+
+## 1.0.0 (2018-07-11)
+
+- Delete all custom resources except snu_python
 
 ## 0.2.1 (2018-08-03)
 

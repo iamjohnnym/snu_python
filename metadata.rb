@@ -6,7 +6,7 @@ maintainer_email 'sysadmin@socrata.com'
 license 'Apache-2.0'
 description 'Installs/configures snu_python'
 long_description 'Installs/configures snu_python'
-version '0.2.1'
+version '1.0.0'
 chef_version '>= 12.14'
 
 source_url 'https://github.com/socrata-cookbooks/snu_python'

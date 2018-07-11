@@ -44,10 +44,21 @@ describe command('pip --version') do
 end
 
 describe file('/opt/myapp/bin/python') do
-  its(:link_path) { should eq('/opt/myapp/bin/python2.7') }
+  its(:link_path) { should eq("/usr/bin/python#{major_minor3}") }
 end
 
 describe command('/opt/myapp/bin/python --version') do
   its(:exit_status) { should eq(0) }
-  its(:stderr) { should match(/^Python 2\.7\.[0-9]+$/) }
+  its(:stdout) { should match(/^Python #{major_minor3}\.[0-9]+$/) }
+end
+
+describe file('/usr/share/collectd/python/bin/python') do
+  its(:link_path) do
+    should eq("/usr/share/collectd/python/bin/python#{major_minor2}")
+  end
+end
+
+describe command('/usr/share/collectd/python/bin/python --version') do
+  its(:exit_status) { should eq(0) }
+  its(:stderr) { should match(/^Python #{major_minor2}\.[0-9]+$/) }
 end
