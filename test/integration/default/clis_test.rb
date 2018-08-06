@@ -36,7 +36,7 @@ end
 describe command('pip --version') do
   its(:exit_status) { should eq(0) }
   its(:stdout) do
-    r = Regexp.new('^pip [0-9]+\.[0-9]+\.[0-9]+ from ' \
+    r = Regexp.new('^pip [0-9]+\.[0-9]+ from ' \
                    "/usr/local/lib/python#{major_minor2}/dist-packages/pip " \
                    "\\(python #{major_minor2}\\)")
     should match(r)
