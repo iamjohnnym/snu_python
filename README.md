@@ -50,7 +50,7 @@ Syntax:
 ```ruby
 snu_python 'default' do
   python3_packages %w[requests]
-  python2_packages %w[requests awscli]
+  python2_packages %w[requests]
   action :install
 end
 ```
@@ -65,11 +65,11 @@ Actions:
 
 Properties:
 
-| Property         | Default             | Description                        |
-|------------------|---------------------|------------------------------------|
-| python3_packages | %w[requests]        | Packages to install under Python 3 |
-| python2_packages | %w[requests awscli] | Packages to install under Python 2 |
-| action           | `:install`          | The action to perform              |
+| Property         | Default      | Description                        |
+|------------------|--------------|------------------------------------|
+| python3_packages | %w[requests] | Packages to install under Python 3 |
+| python2_packages | %w[requests] | Packages to install under Python 2 |
+| action           | `:install`   | The action to perform              |
 
 ## Maintainers
 

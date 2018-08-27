@@ -96,7 +96,7 @@ shared_context 'resources::snu_python' do
             end
 
             it "#{act}s the requested Python 2 pip packages" do
-              pkgs = python2_packages || %w[requests awscli]
+              pkgs = python2_packages || %w[requests]
               expect(chef_run).to send(
                 "#{act}_python_package", 'Python 2 pip packages'
               ).with(package_name: pkgs, python: '2')

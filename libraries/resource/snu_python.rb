@@ -31,7 +31,7 @@ class Chef
       include Chef::DSL::DeclareResource
 
       property :python3_packages, Array, default: %w[requests]
-      property :python2_packages, Array, default: %w[requests awscli]
+      property :python2_packages, Array, default: %w[requests]
 
       default_action :install
 

@@ -26,21 +26,19 @@ end
   end
 end
 
-%w[awscli 1and1].each do |p|
-  describe pip(p) do
+describe pip('1and1') do
+  it { should be_installed }
+end
+
+%W[/usr/local/bin/pip2 /usr/local/bin/pip#{major_minor2}].each do |pp|
+  describe pip('1and1', pp) do
     it { should be_installed }
   end
+end
 
-  %W[/usr/local/bin/pip2 /usr/local/bin/pip#{major_minor2}].each do |pp|
-    describe pip(p, pp) do
-      it { should be_installed }
-    end
-  end
-
-  %W[/usr/local/bin/pip3 /usr/local/bin/pip#{major_minor3}].each do |pp|
-    describe pip(p, pp) do
-      it { should_not be_installed }
-    end
+%W[/usr/local/bin/pip3 /usr/local/bin/pip#{major_minor3}].each do |pp|
+  describe pip('1and1', pp) do
+    it { should_not be_installed }
   end
 end
 
