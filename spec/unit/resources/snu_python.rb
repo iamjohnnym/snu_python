@@ -88,16 +88,18 @@ shared_context 'resources::snu_python' do
               expect(chef_run).to install_python_runtime(p).with(options: opts)
             end
 
-            it "#{act}s the requested Python 3 packages" do
+            it "#{act}s the requested Python 3 pip packages" do
               pkgs = python3_packages || %w[requests]
-              expect(chef_run).to send("#{act}_snu_python_package", pkgs)
-                .with(python: '3')
+              expect(chef_run).to send(
+                "#{act}_python_package", 'Python 3 pip packages'
+              ).with(package_name: pkgs, python: '3')
             end
 
-            it "#{act}s the requested Python 2 packages" do
-              pkgs = python2_packages || %w[requests awscli]
-              expect(chef_run).to send("#{act}_snu_python_package", pkgs)
-                .with(python: '2')
+            it "#{act}s the requested Python 2 pip packages" do
+              pkgs = python2_packages || %w[requests]
+              expect(chef_run).to send(
+                "#{act}_python_package", 'Python 2 pip packages'
+              ).with(package_name: pkgs, python: '2')
             end
 
             it 'ensures /usr/local/bin/pip points at Python 2' do
@@ -142,8 +144,10 @@ shared_context 'resources::snu_python' do
         it_behaves_like 'any installed state'
 
         %w[3 2].each do |p|
-          it "does not remove all Python #{p} packages" do
-            pp = chef_run.snu_python_package("Remove all Python #{p} packages")
+          it "does not remove all Python #{p} pip packages" do
+            pp = chef_run.python_package(
+              "All Python #{p} pip packages"
+            )
             expect(pp).to eq(nil)
           end
         end
@@ -154,9 +158,9 @@ shared_context 'resources::snu_python' do
 
         it_behaves_like 'any installed state'
 
-        it 'removes all Python 3 packages' do
+        it 'removes all Python 3 pip packages' do
           expect(chef_run)
-            .to remove_snu_python_package('Remove all Python 3 packages')
+            .to remove_python_package('All Python 3 pip packages')
             .with(package_name: %w[certifi chardet 3wiggles],
                   python: '3')
         end
@@ -165,9 +169,9 @@ shared_context 'resources::snu_python' do
       context 'Python 2 runtime installed' do
         let(:python2_installed?) { true }
 
-        it 'removes all Python 2 packages' do
+        it 'removes all Python 2 pip packages' do
           expect(chef_run)
-            .to remove_snu_python_package('Remove all Python 2 packages')
+            .to remove_python_package('All Python 2 pip packages')
             .with(package_name: %w[certifi chardet 2wiggles],
                   python: '2')
         end

@@ -26,37 +26,25 @@ class Chef
     # A Chef resource for managing our Python installs on Debian/Ubuntu.
     #
     # @author Jonathan Hartman <jonathan.hartman@socrata.com>
-    class SnuPythonDebian < SnuPython
+    class SnuPythonDebian < Chef::Resource::SnuPython
       provides :snu_python, platform_family: 'debian'
 
       #
-      # Ensure the APT cache is fresh before trying to do anything with a
-      # python_runtime resource.
-      #
-      # (see Chef::Resource::SnuPython#after_created)
-      #
-      def after_created
-        begin
-          run_context.resource_collection.find('apt_update[default]')
-        rescue Chef::Exceptions::ResourceNotFound
-          apt = Chef::Resource::AptUpdate.new('default', run_context)
-          apt.declared_type = :apt_update
-          run_context.resource_collection.insert(apt)
-        end
-
-        super
-      end
-
-      #
-      # Install/upgrade/remove any additional packages after the python_runtime
+      # Ensure the APT cache is fresh before trying to do anything and
+      # install/upgrade/remove any additional packages after the python_runtime
       # resource has had its chance to do so.
       #
       %i[install upgrade remove].each do |act|
         action act do
+          apt_update 'default'
+
           super()
 
           %w[3 2].each do |py|
-            package(packages_for(py)) { action({ remove: :purge }[act] || act) }
+            package "All Python #{py} system packages" do
+              package_name(lazy { packages_for(py) })
+              action act == :remove ? :purge : act
+            end
           end
         end
       end

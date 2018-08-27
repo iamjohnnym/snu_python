@@ -18,49 +18,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+require 'chef/dsl/declare_resource'
 require 'chef/resource'
 require 'json'
-require_relative 'snu_python_package'
 
 class Chef
   class Resource
     # A Chef resource for managing our Python installs.
     #
     # @author Jonathan Hartman <jonathan.hartman@socrata.com>
-    class SnuPython < Resource
+    class SnuPython < Chef::Resource
+      include Chef::DSL::DeclareResource
+
       property :python3_packages, Array, default: %w[requests]
-      property :python2_packages, Array, default: %w[requests awscli]
+      property :python2_packages, Array, default: %w[requests]
 
       default_action :install
 
       #
-      # A python_runtime resource needs to exist at compile time so package
-      # resources can find it when they're compiled.
+      # If a python_package or pip_requirements resources is declared and
+      # given one of the python_runtime resources that this resource sets up,
+      # that runtime needs to be available at compile time or poise-python will
+      # raise an exception. It doesn't need to be installed, though, so we can
+      # add one with action :nothing to the resource collection and do the real
+      # work in the action blocks at converge time.
       #
       def after_created
         %w[3 2].each do |p|
-          begin
-            run_context.resource_collection.find("python_runtime[#{p}]")
-          rescue Chef::Exceptions::ResourceNotFound
-            run_context.resource_collection
-                       .insert(new_python_runtime_resource(p))
-          end
+          pyr = declare_resource(:python_runtime, p)
+          pyr.options(package_upgrade: true) if action.include?(:upgrade)
+          pyr.action(:nothing)
         end
-      end
-
-      #
-      # Instantiate and return a new python_runtime resource.
-      #
-      # @param [String] python the resource name/version
-      #
-      # @return [PoisePython::Resources::PythonRuntime::Resource] a resource
-      #
-      def new_python_runtime_resource(python)
-        py = PoisePython::Resources::PythonRuntime::Resource
-             .new(python, run_context)
-        py.declared_type = :python_runtime
-        py.action(:nothing)
-        py
       end
 
       #
@@ -73,12 +61,12 @@ class Chef
           %w[3 2].each do |py|
             python_runtime py do
               options package_upgrade: true if act == :upgrade
-              action :install
             end
 
             next if new_resource.send("python#{py}_packages").empty?
 
-            snu_python_package new_resource.send("python#{py}_packages") do
+            python_package "Python #{py} pip packages" do
+              package_name new_resource.send("python#{py}_packages")
               python py
               action act
             end
@@ -102,7 +90,7 @@ class Chef
       action :remove do
         %w[3 2].each do |py|
           if ::File.exist?("/usr/bin/python#{py}")
-            snu_python_package "Remove all Python #{py} packages" do
+            python_package "All Python #{py} pip packages" do
               package_name(
                 lazy do
                   stdout = shell_out!(
@@ -116,9 +104,7 @@ class Chef
             end
           end
 
-          python_runtime py do
-            action :uninstall
-          end
+          python_runtime(py) { action :uninstall }
         end
       end
     end

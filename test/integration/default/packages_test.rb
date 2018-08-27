@@ -26,25 +26,23 @@ end
   end
 end
 
-%w[awscli 1and1 botocore].each do |p|
-  describe pip(p) do
+describe pip('1and1') do
+  it { should be_installed }
+end
+
+%W[/usr/local/bin/pip2 /usr/local/bin/pip#{major_minor2}].each do |pp|
+  describe pip('1and1', pp) do
     it { should be_installed }
-  end
-
-  %W[/usr/local/bin/pip2 /usr/local/bin/pip#{major_minor2}].each do |pp|
-    describe pip(p, pp) do
-      it { should be_installed }
-    end
-  end
-
-  %W[/usr/local/bin/pip3 /usr/local/bin/pip#{major_minor3}].each do |pp|
-    describe pip(p, pp) do
-      it { should_not be_installed }
-    end
   end
 end
 
-%w[requests pygithub python_http_client].each do |p|
+%W[/usr/local/bin/pip3 /usr/local/bin/pip#{major_minor3}].each do |pp|
+  describe pip('1and1', pp) do
+    it { should_not be_installed }
+  end
+end
+
+%w[requests pygithub].each do |p|
   describe pip(p) do
     it { should be_installed }
   end
@@ -56,6 +54,12 @@ end
   end
 end
 
-describe pip('pygithub', '/opt/myapp/bin/pip') do
+describe pip('awscli', '/opt/myapp/bin/pip') do
   it { should be_installed }
+end
+
+%w[py-dateutil docker jsonpath_rw].each do |p|
+  describe pip(p, '/usr/share/collectd/python/bin/pip') do
+    it { should be_installed }
+  end
 end
