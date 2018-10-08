@@ -14,6 +14,7 @@ end
 
 python_virtualenv '/opt/myapp' do
   python '3'
+  pip_version '18.0'
 end
 
 python_package 'awscli' do
@@ -30,6 +31,7 @@ end
 
 python_virtualenv '/usr/share/collectd/python' do
   python '2'
+  pip_version '18.0'
 end
 
 pip_requirements '/usr/share/collectd/docker/requirements.txt' do
