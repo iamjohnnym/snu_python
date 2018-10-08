@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the snu_python cookbook.
 
+## 1.0.2 (2018-10-08)
+
+- Revert the pip version pin
+
 ## 1.0.1 (2018-10-08)
 
 - Temporarily pin pip to 18.0

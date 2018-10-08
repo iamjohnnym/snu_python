@@ -86,7 +86,7 @@ shared_context 'resources::snu_python' do
             it "installs Python #{p}" do
               opts = act == 'upgrade' ? { package_upgrade: true } : nil
               expect(chef_run).to install_python_runtime(p)
-                .with(pip_version: '18.0', options: opts)
+                .with( options: opts)
             end
 
             it "#{act}s the requested Python 3 pip packages" do
