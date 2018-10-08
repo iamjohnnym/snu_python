@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the snu_python cookbook.
 
+## 1.0.1 (2018-10-08)
+
+- Temporarily pin pip to 18.0
+
 ## 1.0.0 (2018-07-11)
 
 - Delete all custom resources except snu_python

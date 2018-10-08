@@ -46,6 +46,7 @@ class Chef
       def after_created
         %w[3 2].each do |p|
           pyr = declare_resource(:python_runtime, p)
+          pyr.pip_version('18.0')
           pyr.options(package_upgrade: true) if action.include?(:upgrade)
           pyr.action(:nothing)
         end
@@ -60,6 +61,7 @@ class Chef
         action act do
           %w[3 2].each do |py|
             python_runtime py do
+              pip_version '18.0'
               options package_upgrade: true if act == :upgrade
             end
 

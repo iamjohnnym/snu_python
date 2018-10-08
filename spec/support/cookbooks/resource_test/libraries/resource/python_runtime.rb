@@ -12,6 +12,7 @@ class Chef
     class PythonRuntime < Resource
       provides :python_runtime
 
+      property :pip_version, String
       property :options, Hash
 
       %i[install uninstall].each do |act|
