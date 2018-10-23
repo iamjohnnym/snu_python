@@ -96,7 +96,12 @@ class Chef
                   stdout = shell_out!(
                     "/usr/bin/python#{py} -m pip.__main__ list --format=json"
                   ).stdout
-                  JSON.parse(stdout).map { |pkg| pkg['name'] }
+                  # On Ubuntu 18.04, `pip` would remove before other packages,
+                  # causing it to fail out because `pip` no longer existed to
+                  # remove the libraries, pushing it to the end solves that.
+                  # `pygobject` is a `distutils` package and you can't remove
+                  # those.
+                  JSON.parse(stdout).map { |pkg| pkg['name'] unless %w(pip pygobject).include?(pkg['name']) }.compact.push('pip')
                 end
               )
               python py

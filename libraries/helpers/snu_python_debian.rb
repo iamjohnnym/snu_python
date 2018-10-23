@@ -29,7 +29,10 @@ module SnuPythonCookbook
       # e.g. /usr/bin/python3 and uninstalling all the dependencies they pull
       # in without any worries about an autoremove unintentionally killing
       # unrelated packages.
+      # Ubuntu 18.04 fails to :remove due to `python-pip-whl` still being
+      # installed.
       PACKAGES ||= %w[
+        python-pip-whl
         python%<major>s
         python%<major>s-dev
         python%<major>s-minimal
