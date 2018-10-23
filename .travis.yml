@@ -22,10 +22,12 @@ install:
 
 env:
   - SUITE=unit
+  - SUITE=default PLATFORM=ubuntu-1804
   - SUITE=default PLATFORM=ubuntu-1604
   - SUITE=default PLATFORM=ubuntu-1404
   - SUITE=default PLATFORM=debian-9
   - SUITE=default PLATFORM=debian-8
+  - SUITE=remove PLATFORM=ubuntu-1804
   - SUITE=remove PLATFORM=ubuntu-1604
   - SUITE=remove PLATFORM=ubuntu-1404
   - SUITE=remove PLATFORM=debian-9

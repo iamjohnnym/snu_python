@@ -6,7 +6,7 @@ end
 
 describe command('python --version') do
   its(:exit_status) { should eq(0) }
-  its(:stderr) { should match(/^Python 2\.7\.[0-9]+$/) }
+  its(:stderr) { should match(/^Python 2\.7\.[0-9]+/) }
 end
 
 describe file('/usr/bin/pip') do
@@ -60,5 +60,5 @@ end
 
 describe command('/usr/share/collectd/python/bin/python --version') do
   its(:exit_status) { should eq(0) }
-  its(:stderr) { should match(/^Python #{major_minor2}\.[0-9]+$/) }
+  its(:stderr) { should match(/^Python #{major_minor2}\.[0-9]+/) }
 end

@@ -2,6 +2,10 @@
 
 This file is used to list changes made in each version of the snu_python cookbook.
 
+## 1.1.0 (2018-10-22)
+
+- Monkeypatch in Ubuntu 18.04 and pip 18.1 support
+
 ## 1.0.1 (2018-10-08)
 
 - Temporarily pin pip to 18.0
