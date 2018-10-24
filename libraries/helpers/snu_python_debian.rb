@@ -32,7 +32,6 @@ module SnuPythonCookbook
       # Ubuntu 18.04 fails to :remove due to `python-pip-whl` still being
       # installed.
       PACKAGES ||= %w[
-        python-pip-whl
         python%<major>s
         python%<major>s-dev
         python%<major>s-minimal
@@ -43,7 +42,7 @@ module SnuPythonCookbook
         libpython%<major_minor>s-stdlib
         libpython%<major_minor>s-minimal
         libpython%<major_minor>s-dev
-      ].freeze
+      ]
 
       #
       # Build the list of packages for this platform that should be managed.
@@ -53,6 +52,9 @@ module SnuPythonCookbook
       # @return [Array<String>] an array of package names
       #
       def packages_for(python)
+        if node['platform'] == 'ubuntu' && node['platform_version'] == '18.04'
+          PACKAGES.push('python-pip-whl')
+        end
         pkgs = PACKAGES.map do |p|
           format(p,
                  major: python == '2' ? '' : python,
